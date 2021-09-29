@@ -3,6 +3,7 @@
 <div align="center">
 <img src="https://profile-counter.glitch.me/com.peanut.whut.smart/count.svg" alt="访客数量">
 </div>
+
 ## 支持设备列表
 > 点击设备查看使用教程
 
