@@ -42,7 +42,9 @@ class WaterConfActivity : PreferenceActivity() {
                      * 3. When the configuration is complete, get an instance of the AppWidgetManager by
                      * calling getInstance(Context):
                      */
-                    val appWidgetManager: AppWidgetManager = AppWidgetManager.getInstance(this@WaterConfActivity)
+                    val appWidgetManager: AppWidgetManager =
+                        AppWidgetManager.getInstance(this@WaterConfActivity)
+
                     /**
                      * 4. Update the App Widget with a RemoteViews layout by calling
                      * updateAppWidget(int, RemoteViews)
@@ -61,6 +63,11 @@ class WaterConfActivity : PreferenceActivity() {
                     setResult(RESULT_OK, resultValue)
                     finish()
                 }
+                preference(
+                    key = "copy_right",
+                    title = "官网免费更新",
+                    summary = "https://github.com/PPeanutButter/smart-things"
+                )
             }
         }
         super.onCreate(savedInstanceState)
