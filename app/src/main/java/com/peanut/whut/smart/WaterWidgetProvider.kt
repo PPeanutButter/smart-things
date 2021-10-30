@@ -15,6 +15,11 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.lang.Exception
 import kotlin.concurrent.thread
+import android.app.Notification
+import android.app.NotificationManager
+import android.os.Build
+import android.app.NotificationChannel
+import android.content.Context.NOTIFICATION_SERVICE
 
 class WaterWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(
@@ -27,6 +32,79 @@ class WaterWidgetProvider : AppWidgetProvider() {
             val data = loadWaterPref(context, appWidgetId)
             updateAppWidget(context, appWidgetManager, appWidgetId, data = data)
         }
+    }
+
+    private fun listenOrderStatus(context: Context, order: Int, auth: String){
+        thread {
+            while (true){
+                try {
+                    val r = Http()
+                        .setPost(
+                            "https://phoenix.ujing.online/api/v1/water/waterOrderDetail",
+                            JSONObject("{}").put("orderId", order).toString()
+                                .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+                        )
+                        .setHeader("authorization", auth)
+                        .setHeader("x-mobile-id", "ce6d36d2-7d19-3a6e-82de-12c3be83ddb9")
+                        .setHeader(
+                            "user-agent",
+                            "MIX 2(Android/9) (com.midea.vm.washer/2.1.32) Weex/0.28.0.1 1080x2030"
+                        )
+                        .setHeader("x-app-version", "2.1.32")
+                        .setHeader("x-app-code", "CA")
+                    r.run()
+                    println(r.body)
+                    val res = JSONObject(r.body?:"{}")
+                    if (res.getJSONObject("data").getInt("orderStatus") != 0){
+                        val hotWaterML = res.getJSONObject("data").getInt("hotWaterML")
+                        val warmWaterML = res.getJSONObject("data").getInt("warmWaterML")
+                        val domesticHotML = res.getJSONObject("data").getInt("domesticHotML")
+                        val payment = res.getJSONObject("data").getDouble("payment")
+                        val desc = "本次取水: ${hotWaterML+warmWaterML+domesticHotML}ml, 消费${payment}元。"
+                        notification(context, desc)
+                        break
+                    }
+                }catch (e:Exception){
+                    e.printStackTrace()
+                }
+                println("listenOrderStatus=${order}")
+                Thread.sleep(10000)
+            }
+        }
+    }
+
+    private fun notification(context: Context, desc: String) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+                val channelId = "ChannelId"
+                val notification: Notification = Notification.Builder(context, channelId)
+                    .setChannelId(channelId)
+                    .setContentTitle("取水完成")
+                    .setSmallIcon(R.drawable.water_icon)
+                    .setContentText(desc)
+                    .build()
+                val notificationManager = context
+                    .getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+                val channel = NotificationChannel(
+                    channelId,
+                    "取水完成通知",
+                    NotificationManager.IMPORTANCE_DEFAULT
+                )
+                notificationManager.createNotificationChannel(channel)
+                notificationManager.notify(1, notification)
+            }else {
+                val notification: Notification = Notification.Builder(context)
+                    .setContentTitle("取水完成")
+                    .setSmallIcon(R.drawable.water_icon)
+                    .setContentText(desc)
+                    .build()
+                (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+                    .notify(1, notification)
+            }
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
+
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -52,6 +130,9 @@ class WaterWidgetProvider : AppWidgetProvider() {
                     r.run()
                     Handler(context.mainLooper).post {
                         println(r.body)
+                        listenOrderStatus(context, JSONObject(r.body?:"{\"data\":{\"orderId\":44366141}}")
+                                .getJSONObject("data")
+                                .getInt("orderId"), auth)
                         Toast.makeText(context,r.res?.code.toString(),Toast.LENGTH_SHORT).show()
                     }
                 }catch (e:Exception){
