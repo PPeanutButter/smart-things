@@ -10,6 +10,7 @@
 > 点击设备查看使用教程
 
 - [U净-饮水机](doc/uclean.md)
+- [U净-洗衣机]，可以研究，理论可行，欢迎pull request
 
 ## 关于PR
 > 请参照 `WaterConfActivity.kt` 动态创建小部件配置页。
