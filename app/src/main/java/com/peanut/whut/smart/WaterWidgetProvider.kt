@@ -55,7 +55,7 @@ class WaterWidgetProvider : AppWidgetProvider() {
                     r.run()
                     println(r.body)
                     val res = JSONObject(r.body?:"{}")
-                    if (res.getJSONObject("data").getInt("orderStatus") != 0){
+                    if (res.getJSONObject("data").getString("paidAt") != ""){
                         val hotWaterML = res.getJSONObject("data").getInt("hotWaterML")
                         val warmWaterML = res.getJSONObject("data").getInt("warmWaterML")
                         val domesticHotML = res.getJSONObject("data").getInt("domesticHotML")
@@ -98,7 +98,7 @@ class WaterWidgetProvider : AppWidgetProvider() {
                     .setSmallIcon(R.drawable.water_icon)
                     .setContentText(desc)
                     .build()
-                (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+                (context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
                     .notify(1, notification)
             }
         }catch (e:Exception){
