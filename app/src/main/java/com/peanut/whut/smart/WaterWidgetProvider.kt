@@ -38,6 +38,7 @@ class WaterWidgetProvider : AppWidgetProvider() {
         thread {
             while (true){
                 try {
+                    LogService.log("监听订单：$order")
                     val r = Http()
                         .setPost(
                             "https://phoenix.ujing.online/api/v1/water/waterOrderDetail",
@@ -53,7 +54,7 @@ class WaterWidgetProvider : AppWidgetProvider() {
                         .setHeader("x-app-version", "2.1.32")
                         .setHeader("x-app-code", "CA")
                     r.run()
-                    println(r.body)
+                    LogService.log("订单$order 状态：${r.body}")
                     val res = JSONObject(r.body?:"{}")
                     if (res.getJSONObject("data").getString("paidAt") != ""){
                         val hotWaterML = res.getJSONObject("data").getInt("hotWaterML")
@@ -61,6 +62,7 @@ class WaterWidgetProvider : AppWidgetProvider() {
                         val domesticHotML = res.getJSONObject("data").getInt("domesticHotML")
                         val payment = res.getJSONObject("data").getDouble("payment")
                         val desc = "本次取水: ${hotWaterML+warmWaterML+domesticHotML}ml, 消费${payment}元。"
+                        LogService.log("订单$order 状态：$desc")
                         notification(context, desc)
                         break
                     }
@@ -68,7 +70,7 @@ class WaterWidgetProvider : AppWidgetProvider() {
                     e.printStackTrace()
                 }
                 println("listenOrderStatus=${order}")
-                Thread.sleep(10000)
+                Thread.sleep(2000)
             }
         }
     }
@@ -104,7 +106,7 @@ class WaterWidgetProvider : AppWidgetProvider() {
         }catch (e:Exception){
             e.printStackTrace()
         }
-
+        LogService.log("发送通知：${desc}")
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -113,6 +115,7 @@ class WaterWidgetProvider : AppWidgetProvider() {
             val auth = intent.extras?.getString("auth")
             thread {
                 try {
+                    LogService.log("开启饮水机：$id")
                     val r = Http()
                         .setPost(
                             "https://phoenix.ujing.online/api/v1/water/createWaterOrder",
@@ -129,7 +132,7 @@ class WaterWidgetProvider : AppWidgetProvider() {
                         .setHeader("x-app-code", "CA")
                     r.run()
                     Handler(context.mainLooper).post {
-                        println(r.body)
+                        LogService.log("开启饮水机成功：${r.body}")
                         listenOrderStatus(context, JSONObject(r.body?:"{\"data\":{\"orderId\":44366141}}")
                                 .getJSONObject("data")
                                 .getInt("orderId"), auth)
@@ -138,6 +141,7 @@ class WaterWidgetProvider : AppWidgetProvider() {
                 }catch (e:Exception){
                     Handler(context.mainLooper).post {
                         e.printStackTrace()
+                        LogService.log("开启饮水机错误：${e.localizedMessage}")
                         Toast.makeText(context,e.localizedMessage?:"error",Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -157,6 +161,7 @@ class WaterWidgetProvider : AppWidgetProvider() {
             appWidgetId: Int, data: List<String?>
         ) {
             Log.d(TAG, "updateAppWidget appWidgetId=$appWidgetId")
+            LogService.log("updateAppWidget appWidgetId=$appWidgetId")
             // Construct the RemoteViews object.  It takes the package name (in our case, it's our
             // package, but it needs this because on the other side it's the widget host inflating
             // the layout from our package).
@@ -176,6 +181,7 @@ class WaterWidgetProvider : AppWidgetProvider() {
         }
 
         fun loadWaterPref(context: Context, appWidgetId: Int): List<String?> {
+            LogService.log("加载水卡配置：${appWidgetId}")
             val prefs = context.getSharedPreferences(Tools.prefsNAME, 0)
             val deviceId = prefs.getString("${appWidgetId}_device_id", null)
             val userAuth = prefs.getString("water_user_auth", null)

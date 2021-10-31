@@ -12,6 +12,7 @@ class WaterConfActivity : PreferenceActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         intent.putExtra("ActivityName", "水卡配置")
+        LogService.log("打开水卡配置")
         /**
          * 2. Perform your App Widget configuration.
          */
@@ -95,6 +96,7 @@ class WaterConfActivity : PreferenceActivity() {
             )
             // If they gave us an intent without the widget id, just bail.
             if (mAppWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+                LogService.log("完成水卡配置")
                 finish()
             }
         }
