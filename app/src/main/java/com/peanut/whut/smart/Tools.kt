@@ -3,6 +3,9 @@ package com.peanut.whut.smart
 import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceScreen
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
 
 object Tools {
     const val prefsNAME = "com.peanut.whut.smart_preferences"
@@ -36,6 +39,22 @@ object Tools {
             }
             this.isIconSpaceReserved = false
         })
+    }
+
+    fun buildPost(api: String, body: JSONObject, auth: String): Http {
+        return Http()
+            .setPost(
+                api, body.toString()
+                    .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+            )
+            .setHeader("authorization", auth)
+            .setHeader("x-mobile-id", "ce6d36d2-7d19-3a6e-82de-12c3be83ddb9")
+            .setHeader(
+                "user-agent",
+                "MIX 2(Android/9) (com.midea.vm.washer/2.1.32) Weex/0.28.0.1 1080x2030"
+            )
+            .setHeader("x-app-version", "2.1.32")
+            .setHeader("x-app-code", "CA")
     }
 
 }

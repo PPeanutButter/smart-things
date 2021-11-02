@@ -10,8 +10,6 @@ import android.os.Handler
 import android.widget.RemoteViews
 import android.util.Log
 import android.widget.Toast
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.lang.Exception
 import kotlin.concurrent.thread
@@ -20,6 +18,7 @@ import android.app.NotificationManager
 import android.os.Build
 import android.app.NotificationChannel
 import android.content.Context.NOTIFICATION_SERVICE
+import com.peanut.whut.smart.Tools.buildPost
 
 class WaterWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(
@@ -39,20 +38,8 @@ class WaterWidgetProvider : AppWidgetProvider() {
             while (true){
                 try {
                     LogService.log("监听订单：$order")
-                    val r = Http()
-                        .setPost(
-                            "https://phoenix.ujing.online/api/v1/water/waterOrderDetail",
-                            JSONObject("{}").put("orderId", order).toString()
-                                .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
-                        )
-                        .setHeader("authorization", auth)
-                        .setHeader("x-mobile-id", "ce6d36d2-7d19-3a6e-82de-12c3be83ddb9")
-                        .setHeader(
-                            "user-agent",
-                            "MIX 2(Android/9) (com.midea.vm.washer/2.1.32) Weex/0.28.0.1 1080x2030"
-                        )
-                        .setHeader("x-app-version", "2.1.32")
-                        .setHeader("x-app-code", "CA")
+                    val r = buildPost("https://phoenix.ujing.online/api/v1/water/waterOrderDetail",
+                        JSONObject("{}").put("orderId", order), auth)
                     r.run()
                     LogService.log("订单$order 状态：${r.body}")
                     val res = JSONObject(r.body?:"{}")
@@ -62,6 +49,7 @@ class WaterWidgetProvider : AppWidgetProvider() {
                         val domesticHotML = res.getJSONObject("data").getInt("domesticHotML")
                         val payment = res.getJSONObject("data").getDouble("payment")
                         val desc = "本次取水: ${hotWaterML+warmWaterML+domesticHotML}ml, 消费${payment}元。"
+                        SettingManager["water_${order}_status"] = r.body
                         LogService.log("订单$order 状态：$desc")
                         notification(context, desc)
                         break
@@ -84,6 +72,7 @@ class WaterWidgetProvider : AppWidgetProvider() {
                     .setContentTitle("取水完成")
                     .setSmallIcon(R.drawable.water_icon)
                     .setContentText(desc)
+                    .setShowWhen(true)
                     .build()
                 val notificationManager = context
                     .getSystemService(NOTIFICATION_SERVICE) as NotificationManager
@@ -99,6 +88,7 @@ class WaterWidgetProvider : AppWidgetProvider() {
                     .setContentTitle("取水完成")
                     .setSmallIcon(R.drawable.water_icon)
                     .setContentText(desc)
+                    .setShowWhen(true)
                     .build()
                 (context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager)
                     .notify(1, notification)
@@ -116,20 +106,8 @@ class WaterWidgetProvider : AppWidgetProvider() {
             thread {
                 try {
                     LogService.log("开启饮水机：$id")
-                    val r = Http()
-                        .setPost(
-                            "https://phoenix.ujing.online/api/v1/water/createWaterOrder",
-                            JSONObject("{}").put("deviceId", id).toString()
-                                .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
-                        )
-                        .setHeader("authorization", auth!!)
-                        .setHeader("x-mobile-id", "ce6d36d2-7d19-3a6e-82de-12c3be83ddb9")
-                        .setHeader(
-                            "user-agent",
-                            "MIX 2(Android/9) (com.midea.vm.washer/2.1.32) Weex/0.28.0.1 1080x2030"
-                        )
-                        .setHeader("x-app-version", "2.1.32")
-                        .setHeader("x-app-code", "CA")
+                    val r = buildPost("https://phoenix.ujing.online/api/v1/water/createWaterOrder",
+                        JSONObject("{}").put("deviceId", id),auth!!)
                     r.run()
                     Handler(context.mainLooper).post {
                         LogService.log("开启饮水机成功：${r.body}")
