@@ -18,6 +18,7 @@ import android.app.NotificationManager
 import android.os.Build
 import android.app.NotificationChannel
 import android.content.Context.NOTIFICATION_SERVICE
+import com.peanut.exercise.manager.SettingManager
 import com.peanut.whut.smart.Tools.buildPost
 
 class WaterWidgetProvider : AppWidgetProvider() {
@@ -110,11 +111,20 @@ class WaterWidgetProvider : AppWidgetProvider() {
                         JSONObject("{}").put("deviceId", id),auth!!)
                     r.run()
                     Handler(context.mainLooper).post {
-                        LogService.log("开启饮水机成功：${r.body}")
-                        listenOrderStatus(context, JSONObject(r.body?:"{\"data\":{\"orderId\":44366141}}")
-                                .getJSONObject("data")
-                                .getInt("orderId"), auth)
-                        Toast.makeText(context,r.res?.code.toString(),Toast.LENGTH_SHORT).show()
+                        val responseData = JSONObject(r.body?:"{\"code\":0, \"message\":\"response is empty.\"}")
+                        if(responseData.getInt("code") == 0) {
+                            LogService.log("开启饮水机成功：${r.body}")
+                            listenOrderStatus(
+                                context, responseData
+                                    .getJSONObject("data")
+                                    .getInt("orderId"), auth
+                            )
+                            Toast.makeText(context, r.res?.code.toString(), Toast.LENGTH_SHORT)
+                                .show()
+                        }else{
+                            Toast.makeText(context, responseData.getString("message"), Toast.LENGTH_LONG)
+                                .show()
+                        }
                     }
                 }catch (e:Exception){
                     Handler(context.mainLooper).post {

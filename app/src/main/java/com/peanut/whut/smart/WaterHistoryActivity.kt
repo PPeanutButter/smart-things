@@ -8,6 +8,7 @@ import android.view.WindowInsets
 import android.widget.LinearLayout
 import android.widget.Toast
 import com.github.mikephil.charting.charts.LineChart
+import com.peanut.exercise.manager.SettingManager
 import com.peanut.sdk.miuidialog.MIUIDialog
 import com.peanut.whut.smart.Charts.applyData
 import com.peanut.whut.smart.Charts.applyStyle
