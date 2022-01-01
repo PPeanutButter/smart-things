@@ -18,7 +18,6 @@ import android.app.NotificationManager
 import android.os.Build
 import android.app.NotificationChannel
 import android.content.Context.NOTIFICATION_SERVICE
-import com.peanut.exercise.manager.SettingManager
 import com.peanut.whut.smart.Tools.buildPost
 
 class WaterWidgetProvider : AppWidgetProvider() {

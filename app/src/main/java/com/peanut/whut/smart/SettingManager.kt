@@ -1,4 +1,4 @@
-package com.peanut.exercise.manager
+package com.peanut.whut.smart
 
 import android.content.Context
 import android.content.SharedPreferences
